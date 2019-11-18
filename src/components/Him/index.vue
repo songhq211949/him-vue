@@ -1,28 +1,35 @@
 <template>
+    <!--template 下的最外层的div标签  位置固定  user-select 文本不能被选择，就是鼠标不能选择-->
     <div style="position: fixed; user-select:none;">
-
+        <!--im-move 的div ,v-show是控制这个标签展不展示，代码还是生成了，这个与v-if有所区别 这里的元素为空-->
         <div class="im-move" v-show="isMove"></div>
-
+        <!--im-box 的div,注意:class是动态样式绑定的表达式 同理 :style则也是 ref属性则是只要想要在Vue中直接操作DOM元素，就必须用ref属性进行注册
+           -->
         <div class="im-box" :class="isShow ? 'im-box-show' : ''"
              :style="imBoxStyle"
              ref="imBox">
+             <!--@mousedown是vue中鼠标滚动事件 绑定了 主面板的移动-->
             <div class="im-box-move" @mousedown="moveImBox"></div>
-
-            <div class="im-box-confirm-box" v-if="confirm.isShow" @click="confirm.isShow = false">
+            <!-- 样式是im-box-confirmconfirm-box @click为鼠标点击事件  v-if绑定的是confirm.isShow值 大体上这个div没有找到页面上与它相对应的部分-->
+            <div class="im-box-confirmconfirm-box" v-if="confirm.isShow" @click="confirm.isShow = false">
+                <!-- im-box-confirm的div 下面分别为头 信息 取消和确认按钮  -->
                 <div class="im-box-confirm">
+                    <!--头信息 标题-->
                     <div class="im-box-confirm-header">
                         <div class="im-box-confirm-title">{{confirm.title}}</div>
                     </div>
+                    <!-- 消息内容-->
                     <div class="im-box-confirm-content">
                         <div class="im-box-confirm-message">{{confirm.message}}</div>
                     </div>
+                    <!--两个按钮-->
                     <div class="im-box-confirm-buttons">
                         <div class="im-box-confirm-button im-box-confirm-cancel" @click="confirm.cancelHandle()">{{confirm.cancelName}}</div>
                         <div class="im-box-confirm-button im-box-confirm-ok" @click="confirm.okHandle()">{{confirm.okName}}</div>
                     </div>
                 </div>
             </div>
-
+            <!-- user-qrcode-box  为用户二维码  有个事件userQRCodeCloseHandle  显不显示绑定在userQRCodeVisible值上 -->
             <div class="user-qrcode-box" v-if="userQRCodeVisible" @click="userQRCodeCloseHandle">
                 <div class="user-qrcode">
                     <img :src="userQRCodeImg" alt="" style="display: block;" @click.stop="downloadImg(userQRCodeImg)">
@@ -30,8 +37,8 @@
                     <div class="user-uid" @click.stop="">用户ID: {{user.uid}}</div>
                 </div>
             </div>
-
-            <div class="user-login-box" v-if="!user.uid" @click="isShowClick">
+            <!--用户登入界面 v-if来控制显不显示 与user.uid的相反   isShowClick 事件是点击后触发事件 这里有qq登入和游客登入 -->
+            <div class="user-login-box" v-if="!user.uid && false" @click="isShowClick">
                 <div class="user-login-list">
                     <a class="user-login-button" href="javascript:" @click="touristLogin(2)">
                         <img src="./image/user-2-default.png" alt="女游客登录">
@@ -41,15 +48,33 @@
                         <img src="./image/user-1-default.png" alt="男游客登录">
                         <span>男游客</span>
                     </a>
+                    <a class="user-login-button" href="javascript:" @click="touristLogin(2)">
+                        <img src="./image/user-2-default.png" alt="女游客登录">
+                        <span>账号密码</span>
+                    </a>
                     <a class="user-login-button" href="javascript:" @click="qqLoginClick">
                         <img src="./image/login-qq.png" alt="QQ登录">
                         <span>QQ登录</span>
                     </a>
                 </div>
             </div>
-
+            <!-- 新增账号密码登入  -->
+            <div class = "user-login-password-box" v-if="!user.uid ">
+                <div class = "user-login-name">
+                    <input type="text" name="firstname" placeholder="请输入用户id" style="color:red;border-radius:9px;" >
+                </div> 
+                <div class ="user-login-password">
+                    <input type="password" name="password" placeholder="请输入密码" style="color:red;border-radius:9px;" > 
+                </div >
+                 <div class ="user-login-sure">
+                    <button class="user-login-sure-button" @click="confirm.okHandle()">确认</button>
+                </div >
+            </div>
+            <!--登入后主页面的顶部部分-->
             <header class="im-panel-header">
+                <!--用户头像  用户名称  用户的签名  -->
                 <div class="im-header-user">
+                    <!--alt 属性 为图片不存在的时候  为默认显示文字 :src 图片  :title 是用来提示的  -->
                     <img class="im-header-user-avatar" :src="user.avatar | getDefaultAvatar" alt="头像">
                     <div class="im-header-user-content">
                         <div class="im-header-user-name" :title="user.name">
@@ -60,6 +85,7 @@
                         </div>
                     </div>
                 </div>
+                <!--头部的设置操作 一次为登出  二维码 小喇叭  下拉框    -->
                 <div class="im-header-setwin">
                     <div class="im-header-out-login" @click="userOutClick" title="登出">
                         <img src="./image/out-login.png" alt="登出" style="width: 100%; height: 100%;">
@@ -71,9 +97,11 @@
                     <i class="im-icon im-icon-panel-down" @click="isShowClick"></i>
                 </div>
             </header>
-
+            <!-- tab 导航栏 <nav> 标签是 HTML 5 中的新标签 用于导航 -->
             <nav class="im-tab-nav">
+                <!--这里使用了 ul li 标签 -->
                 <ul class="im-tab">
+                    <!--这个是v-for的应用-->
                     <li v-for="item in imTabList"
                         :key="item.index"
                         class="im-tab-item"
@@ -88,7 +116,7 @@
                 </ul>
             </nav>
 
-            <!-- 历史消息-->
+            <!-- 历史消息 对应tab消息  <main> 标签是 HTML 5 中的新标签。   标签规定文档的主要内容 -->
             <main class="im-panel-body" v-if="imTabSelectedIndex === 0">
                 <div class="im-user-warning-box" v-if="!webSocketIsOpen">
                     <div class="im-chat-warning" style="top: 0;" v-html="webSocketWarningText"></div>
@@ -131,7 +159,7 @@
 
             </main>
 
-            <!-- 朋友-->
+            <!-- 朋友 对应tab朋友   -->
             <main class="im-panel-body"  v-if="imTabSelectedIndex === 1">
 
                 <div class="im-new-friend" @click="newFriendClick">
@@ -200,7 +228,7 @@
 
             </main>
 
-            <!-- 群组-->
+            <!-- 群组 对应tab群组  -->
             <main class="im-panel-body"  v-if="imTabSelectedIndex === 2">
 
                 <div class="im-group-create">
@@ -235,11 +263,14 @@
                 </ul>
 
             </main>
-
+            <!--主页面的底部 -->
             <footer class="im-panel-footer">
+                <!--更换主题按钮-->
                 <div class="im-panel-theme" @click="themeVisible = !themeVisible">
                     <img src="./image/theme.png" alt="更换主题">
                 </div>
+
+                <!--更换主题时跳出来的页面主题-->
                 <div class="im-panel-theme-list" v-if="themeVisible">
                     <div class="im-panel-theme-item" v-for="(item, index) in themeList" :key="index" @click="changeTheme(index, true)">
                         <div v-if="item['background-image']" :style="item"></div>
@@ -250,9 +281,9 @@
 
         </div>
 
-        <!--聊天界面-->
+        <!--聊天界面  即聊天对话框 ref属性是为了注册到组件 v-show 动态绑定显不显示  :style动态绑定样式  -->
         <div class="im-chat-box" v-show="chatVisible" :style="imChatBoxStyle" ref="imChatBox">
-
+            <!--群聊的二维码-->
             <div class="group-qrcode-box" v-if="groupQRCodeVisible" @click="groupQRCodeCloseHandle">
                 <div class="group-qrcode">
                     <img :src="groupQRCodeImg" alt="" style="display: block;" @click.stop="downloadImg(groupQRCodeImg)">
@@ -260,7 +291,7 @@
                     <div class="group-id" @click.stop="">群ID: {{historyMsgListSelected.id}}</div>
                 </div>
             </div>
-
+            <!--聊天的时候校验用户是否登入 ，若user.id为空则显示登入界面  -->
             <div class="user-login-box" v-if="!user.uid">
                 <div class="user-login-list">
                     <a class="user-login-button" href="javascript:" @click="touristLogin(2)">
@@ -277,19 +308,26 @@
                     </a>
                 </div>
             </div>
-
+            <!--聊天主界面的顶部  -->
             <header class="im-chat-header">
+                <!--这里是什么啊？ @mousedown 为鼠标滚动事件 -->
                 <div class="im-chat-move" @mousedown="moveChatMsg"></div>
+                <!-- 头部聊天用户或是群聊的详细信息  -->
                 <div class="im-chat-user">
+                    <!-- 当前聊天对象的头像 如果是单聊就是单聊的头像  如果是群聊，就是群聊的头像 -->
                     <img :src="chatUser.avatar | getDefaultAvatar" alt="" class="im-chat-user-avatar">
                     <div class="im-chat-user-info">
+                        <!-- 用户信息的名字 -->
                         <span class="im-chat-user-name" :title="chatUser.name">
                             {{ chatUser.name }}
                         </span>
+                        <!--群聊的话显示 人数   -->
                         <span class="im-chat-user-list-button" v-if="Object.keys(chatMsgGroupUserList).length > 0">
                             {{Object.keys(chatMsgGroupUserList).length}}人
                         </span>
+                        <!-- 显示人数的功能 -->
                         <i class="im-icon im-icon-panel-down" v-if="chatUser.type === 2" @click="isShowGroupUserListClick"></i>
+                        <!-- 用户的 签名 -->
                         <span class="im-chat-user-remark" :title="chatUser.remark">
                             {{ chatUser.remark }}
                         </span>
@@ -303,7 +341,7 @@
                 </div>
                 <div class="im-chat-warning" v-if="!webSocketIsOpen" v-html="webSocketWarningText"></div>
             </header>
-
+            <!--emoji图标列表-->
             <nav style="display: none;">
                 <div id="emoji_[smile]"><img src="./emoji/smile.png" class="im-chat-msg-emoji" title="smile" alt="smile"></div>
                 <div id="emoji_[laughing]"><img src="./emoji/laughing.png" class="im-chat-msg-emoji" title="laughing" alt="laughing"></div>
@@ -330,14 +368,14 @@
                 <div id="emoji_[clap]"><img src="./emoji/clap.png" class="im-chat-msg-emoji" title="clap" alt="clap"></div>
                 <div id="emoji_[ok_hand]"><img src="./emoji/ok_hand.png" class="im-chat-msg-emoji" title="ok_hand" alt="ok_hand"></div>
             </nav>
-
+            <!--用户列表 -->
             <div class="im-chat-user-list" v-if="chatMsgGroupUserVisible">
                 <div class="im-chat-user-list-item" v-for="item in chatMsgGroupUserList" :key="item.user.uid">
                     <img :src="item.user.avatar | getDefaultAvatar">
                     <cite>{{item.user.name}}</cite>
                 </div>
             </div>
-
+            <!--聊天框的主界面，展示已发送的消息  -->
             <main class="im-chat-main" id="chatMsgList">
                 <a class="im-list-more" @click="getChatMsgList">{{ chatMsgListHandleMoreText }}</a>
                 <template v-for="(item, index) in chatMsgList">
@@ -356,8 +394,9 @@
                 </template>
 
             </main>
-
+            <!--聊天框底部   -->
             <footer class="im-chat-footer">
+                <!--  笑脸 图片 上场文件 图片和上传图片暂不支持  -->
                 <div class="im-chat-feature-holder">
                     <div class="im-chat-feature-btn-box">
                         <div class="im-chat-feature-btn im-icon im-icon-emoji im-emoji-box" @click="handleEmoji">
@@ -371,9 +410,11 @@
                         <div class="im-chat-feature-btn im-icon im-icon-upload"></div>
                     </div>
                 </div>
+                <!-- 消息输入的框框  -->
                 <div class="im-chat-text-holder">
                     <textarea placeholder="请输入" ref="himChatText" @blur="chatTextBlur" v-model="chatText"></textarea>
                 </div>
+                <!-- 关闭还是发送 -->
                 <div class="im-chat-send-box">
                     <div class="im-chat-send">
                         <div class="im-chat-send-btn" @click="closeChat">关闭</div>
@@ -513,6 +554,7 @@ export default {
                 "background-color": "#f6f6f6"
             },
             themeVisible: false,
+            //这里有三个标签  消息 朋友 群组  
             imTabList: [
                 {
                     index: 0,
@@ -692,11 +734,12 @@ export default {
             // 心跳定时器
             webSocketPingTimer: null,
             webSocketPingTime: 10000, // 心跳的间隔，当前为 10秒,
+            //这里使用了一个类似对象的东西
             confirm: {
                 isShow: false, // 是否显示
                 title: "提示", // 标题
                 message: "确定执行吗?", // 标题
-                okHandle: function() {}, // 确认的回调
+                okHandle: function() {}, // 确认的回调 这里方法为空？
                 okName: "确认", // 确认按钮的名称
                 cancelHandle: function() {}, // 取消的回调
                 cancelName: "取消" // 取消按钮的名称
@@ -1005,7 +1048,7 @@ export default {
             // 触发a的单击事件
             a.dispatchEvent(event);
         },
-        // 去换Tab
+        // 切换Tab
         imTabSelectedHandle(index) {
             let data = [];
             for (let item of this.imTabList) {
@@ -1142,7 +1185,7 @@ export default {
             }
         },
         isShowClick() {
-            // 传递到父组件
+            // 传递到父组件  this.$emit为传递到父组件  
             this.$emit("on-is-show-click");
         },
         // 关闭
@@ -2612,6 +2655,57 @@ only screen and (min-device-pixel-ratio: 2) {
         }
         &:hover {
             opacity: 0.7;
+        }
+    }
+}
+//学着写点css
+.user-login-password-box {
+    //position 定位，有5个值  
+    //static HTML元素的默认值，即没有定位，遵循正常的文档流对象。如果设置了static则top，bottom ，left,right等值不起作用
+    //fixed 即使窗口是滚动的它也不会移动
+    // relative 相对定位元素的定位是相对其正常位置。也就是在正常的位置再偏离，但正常的位置依然保留
+    // absolute 绝对定位的元素的位置相对于最近的已定位父元素，如果元素没有已定位的父元素，那么它的位置相对于<html>:
+    //sticky 粘性定位  在 position:relative 与 position:fixed 定位之间切换。
+    position: absolute;
+    top: 0;  //top是相对于父div而言的，而不是同级的html元素
+    right: 0; //top是相对于父div而言的，而不是同级的html元素
+    width: 100%; //本div的宽度
+    height: 100%; //本div的高度
+    background-color: rgba(0, 0, 0, 0.9); //当前div的背景颜色，rgba a表示透明度  
+    //z-index 属性设置元素的堆叠顺序。拥有更高堆叠顺序的元素总是会处于堆叠顺序较低的元素的前面 Z-index 仅能在定位元素上奏效 
+    z-index: 999;
+    .user-login-name {
+        position: absolute;
+        top: 30%;
+        left: 40%;
+        height :20px;
+        width: 30px;
+        //transform用于div里面的元素是垂直居中的  
+        transform: translate(-50%, -50%);
+        z-index: 1000;
+        //display 为flex时 ，即自己本身 和子元素也为容器
+        display: flex;
+    }
+    .user-login-password{
+        position:absolute;
+        top: 50%;
+        left: 40%;
+        height :20px;
+        width: 30px;
+        transform: translate(-50%, -50%);//transform 为设置垂直值
+        z-index: 1000;
+        display: flex;
+    }
+    .user-login-sure {
+        position:absolute;
+        top: 70%;
+        left: 50%;
+        height :20px;
+        width: 40px;
+        z-index: 1000;
+        .im-box-confirm-ok {
+            color: #26a2ff;
+            width: 50%;
         }
     }
 }
