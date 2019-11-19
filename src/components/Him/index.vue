@@ -3,16 +3,15 @@
     <div style="position: fixed; user-select:none;">
         <!--im-move 的div ,v-show是控制这个标签展不展示，代码还是生成了，这个与v-if有所区别 这里的元素为空-->
         <div class="im-move" v-show="isMove"></div>
-        <!--im-box 的div,注意:class是动态样式绑定的表达式 同理 :style则也是 ref属性则是只要想要在Vue中直接操作DOM元素，就必须用ref属性进行注册
-           -->
+        <!--im-box 的div,注意:class是动态样式绑定的表达式 同理 :style则也是 ref属性则是只要想要在Vue中直接操作DOM元素，就必须用ref属性进行注册-->
         <div class="im-box" :class="isShow ? 'im-box-show' : ''"
              :style="imBoxStyle"
              ref="imBox">
-             <!--@mousedown是vue中鼠标滚动事件 绑定了 主面板的移动-->
+             <!--@mousedown是vue中鼠标滚动事件 绑定了主面板的移动  效果就是在电脑端可以适当地移动 -->
             <div class="im-box-move" @mousedown="moveImBox"></div>
-            <!-- 样式是im-box-confirmconfirm-box @click为鼠标点击事件  v-if绑定的是confirm.isShow值 大体上这个div没有找到页面上与它相对应的部分-->
-            <div class="im-box-confirmconfirm-box" v-if="confirm.isShow" @click="confirm.isShow = false">
-                <!-- im-box-confirm的div 下面分别为头 信息 取消和确认按钮  -->
+            <!-- 该div为退出时的界面  样式是im-box-confirmconfirm-box @click为鼠标点击事件  v-if绑定的是confirm.isShow值 大体上这个div没有找到页面上与它相对应的部分-->
+            <div class="im-box-confirm-box" v-if="confirm.isShow" @click="confirm.isShow = false">
+                <!-- im-box-confirm的div 下面分别为头信息 取消和确认按钮  -->
                 <div class="im-box-confirm">
                     <!--头信息 标题-->
                     <div class="im-box-confirm-header">
@@ -38,19 +37,19 @@
                 </div>
             </div>
             <!--用户登入界面 v-if来控制显不显示 与user.uid的相反   isShowClick 事件是点击后触发事件 这里有qq登入和游客登入 -->
-            <div class="user-login-box" v-if="!user.uid && false" @click="isShowClick">
+            <div class="user-login-box" v-if="!user.uid && user.isChoose" @click="isShowClick">
                 <div class="user-login-list">
-                    <a class="user-login-button" href="javascript:" @click="touristLogin(2)">
+                    <!-- <a class="user-login-button" href="javascript:" @click="touristLogin(2)">
                         <img src="./image/user-2-default.png" alt="女游客登录">
-                        <span>女游客</span>
+                        <span>注册</span>
+                    </a> -->
+                    <a class="user-login-button" href="javascript:" @click="register">
+                        <img src="./image/user-1-default.png" alt="注册">
+                        <span>注册</span>
                     </a>
-                    <a class="user-login-button" href="javascript:" @click="touristLogin(1)">
-                        <img src="./image/user-1-default.png" alt="男游客登录">
-                        <span>男游客</span>
-                    </a>
-                    <a class="user-login-button" href="javascript:" @click="touristLogin(2)">
-                        <img src="./image/user-2-default.png" alt="女游客登录">
-                        <span>账号密码</span>
+                    <a class="user-login-button" href="javascript:" @click="loginingByPassword">
+                        <img src="./image/user-2-default.png" alt="账号登入">
+                        <span>账号登入</span>
                     </a>
                     <a class="user-login-button" href="javascript:" @click="qqLoginClick">
                         <img src="./image/login-qq.png" alt="QQ登录">
@@ -58,16 +57,16 @@
                     </a>
                 </div>
             </div>
-            <!-- 新增账号密码登入  -->
-            <div class = "user-login-password-box" v-if="!user.uid ">
+            <!-- 新增账号密码登入-->
+            <div class = "user-login-password-box" v-if="!user.uid && user.isLoginingByPassword">
                 <div class = "user-login-name">
-                    <input type="text" name="firstname" placeholder="请输入用户id" style="color:red;border-radius:9px;" >
+                    <input type="text" v-model="userName" placeholder="请输入用户名" style="color:green;border-radius:9px;height:30px;width:100Px;text-align:center;" >
                 </div> 
                 <div class ="user-login-password">
-                    <input type="password" name="password" placeholder="请输入密码" style="color:red;border-radius:9px;" > 
+                    <input type="password" v-model="password" placeholder="请输入密码" style="color:green;border-radius:9px;height:30px;width:100Px;text-align:center;" > 
                 </div >
                  <div class ="user-login-sure">
-                    <button class="user-login-sure-button" @click="confirm.okHandle()">确认</button>
+                    <button class="user-login-sure-button" @click="userNamePasswordLogin(userName,password)">确认</button>
                 </div >
             </div>
             <!--登入后主页面的顶部部分-->
@@ -85,7 +84,7 @@
                         </div>
                     </div>
                 </div>
-                <!--头部的设置操作 一次为登出  二维码 小喇叭  下拉框    -->
+                <!--头部的设置操作 一次为登出  二维码 小喇叭  下拉框-->
                 <div class="im-header-setwin">
                     <div class="im-header-out-login" @click="userOutClick" title="登出">
                         <img src="./image/out-login.png" alt="登出" style="width: 100%; height: 100%;">
@@ -432,7 +431,7 @@
 import Cookies from "js-cookie";
 import { userLoginInfo, userQRCheckCode } from "./api/userIndex";
 import { userFriendLists } from "./api/userFriend";
-import { userLoginByTourist, userLoginByQq } from "./api/userLogin";
+import { userLoginByTourist, userLoginByQq,userLoginByPassword } from "./api/userLogin";
 import {
     userFriendMsgClearUnMsgCount,
     userFriendMsgCreate,
@@ -506,6 +505,9 @@ export default {
     },
     data() {
         return {
+            //增加用户名和密码
+            userName:"",
+            password:"",
             themeList: [
                 {
                     "background-image":
@@ -582,7 +584,11 @@ export default {
             clientHeight: null,
             user: {
                 profile: {},
-                sid: null
+                sid: null,
+                isChoose: true,//控制是否展示选择登入方式 
+                isLoginingByPassword: null, //控制是否展示账号密码登入界面
+                isRegistering: null //控制是否展示注册界面
+
             },
             imBoxPositionX: null,
             imBoxPositionY: null,
@@ -856,6 +862,10 @@ export default {
                 () => {
                     // 确定了
                     this.userOut();
+                    //因为this.userOut() 给user对象复制的时候没有添加属性isChoose和isLoginingByPassword
+                    //导致v-if无法响应之后该属性值的变化，从而无法动态地渲染v-if,这里使用this.$set()
+                    this.$set(this.user,"isChoose",true);
+                    this.$set(this.user,"isLoginingByPassword",false);
                 },
                 () => {
                     // 取消了登出
@@ -882,6 +892,36 @@ export default {
             this.userQRCodeImg = null;
             // 关闭websocket 连接
             this.wsOut();
+        },
+        //选择注册
+        register(){
+
+        },
+        //选择账号密码登入
+        loginingByPassword(){
+            this.user.isLoginingByPassword = true;
+            this.user.isChoose = false;
+              console.log("isLoginingByPassword" + this.user.isLoginingByPassword);
+            console.log("选择了账号密码登入");
+        },
+        //账号密码登入
+        userNamePasswordLogin(userName,password) {
+            // 先退出
+            this.userOut();
+            userLoginByPassword(this.apiBaseUrl, userName,password)
+                .then(response => {
+                    if (response.code !== 0) {
+                        this.requestErr(response.code, response.message);
+                        return false;
+                    }
+                    let data = response.data;
+                    // 设置登录信息
+                    this.setUid(data.uid);
+                    this.setSid(data.sid);
+                    // 登录成功, 重新初始化
+                    this.init();
+                })
+                .catch(() => {});
         },
         // 游客登录
         touristLogin(sex) {
@@ -2677,9 +2717,7 @@ only screen and (min-device-pixel-ratio: 2) {
     .user-login-name {
         position: absolute;
         top: 30%;
-        left: 40%;
-        height :20px;
-        width: 30px;
+        left: 50%;
         //transform用于div里面的元素是垂直居中的  
         transform: translate(-50%, -50%);
         z-index: 1000;
@@ -2689,10 +2727,8 @@ only screen and (min-device-pixel-ratio: 2) {
     .user-login-password{
         position:absolute;
         top: 50%;
-        left: 40%;
-        height :20px;
-        width: 30px;
-        transform: translate(-50%, -50%);//transform 为设置垂直值
+        left: 50%;
+        transform: translate(-50%, -50%);//transform 为设置垂直值,水平居中
         z-index: 1000;
         display: flex;
     }
@@ -2700,12 +2736,19 @@ only screen and (min-device-pixel-ratio: 2) {
         position:absolute;
         top: 70%;
         left: 50%;
-        height :20px;
-        width: 40px;
+        transform: translate(-50%, -50%);
+        height :25px;
+        width: 50px;
         z-index: 1000;
-        .im-box-confirm-ok {
+        display: flex;
+        .user-login-sure-button {
             color: #26a2ff;
-            width: 50%;
+            width: 100%;
+            margin: 0;
+            border: 0;
+            border-radius:9px;
+            background-color: rgb(15, 222, 236);
+
         }
     }
 }

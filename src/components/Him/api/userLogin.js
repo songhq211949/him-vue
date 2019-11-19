@@ -24,3 +24,15 @@ export function userLoginByQq(apiBaseUrl, code, redirect_uri) {
         }
     });
 }
+//账号密码登入
+export function userLoginByPassword(apiBaseUrl,userName,password){
+    return create(apiBaseUrl)({
+        url : "/api/user/login/byPwd",
+        method : "post",
+        params:{
+            userName,
+            password
+        }
+    });
+
+}

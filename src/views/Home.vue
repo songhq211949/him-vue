@@ -293,8 +293,10 @@ export default {
             // 前去授权
             window.location.href = this.qqLoginUrl;
         },
+        //聊天界面一直展示
         isShowClick() {
-            this.isShow = !this.isShow;
+            //this.isShow = !this.isShow;
+            this.isShow = true;
         },
         // 登录初始化完成
         loginInit() {
