@@ -1,5 +1,5 @@
 module.exports = {
-    baseUrl: process.env.NODE_ENV === "production" ? process.env.baseUrl : "/",
+    publicPath: process.env.NODE_ENV === "production" ? process.env.baseUrl : "/",
     outputDir: process.env.outputDir,
     configureWebpack: config => {
         if (process.env.NODE_ENV === "production") {

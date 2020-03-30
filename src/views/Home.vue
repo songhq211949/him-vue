@@ -1,3 +1,4 @@
+<!--整体上home.vue引入 index.vue中的-->
 <template>
     <div>
         <!--错误信息方便调试-->
@@ -7,7 +8,7 @@
 
         </textarea>
         </div>
-        <div class="text" :class="{'is-show': isShow}">
+        <!--<div class="text" :class="{'is-show': isShow}">
             <h1 class="title" style="font-size: 18px;">一篇文章引发的<span style="color: red;">思考</span></h1>
             <div class="content">
                 一次读公号推文, 发现一篇文章写得特好, 勾起了好奇心
@@ -203,7 +204,7 @@
 
             </div>
 
-        </div>
+        </div> -->
 
         <div class="view-box">
             <him ref="him"
@@ -245,8 +246,8 @@ export default {
     name: "home",
 
     data() {
-        const qqRedirectUri = "http://him-netty.await.fun/h5";
-        const client_id = "101574853";
+        const qqRedirectUri = "http://songhq.club/h5im";
+        const client_id = "101835516";
         return {
             errLog: "",
             isShow: false,
@@ -271,8 +272,11 @@ export default {
     methods: {
         // WebSocket 编码
         WSResEncode(payload) {
+
             let errMsg = WSBaseReqProto.verify(payload);
-            console.log("buff 解析错误信息：", errMsg);
+            if(errMsg){
+                console.log("buff 解析错误信息：", errMsg);
+            }
             // Create a new message
             const wsData = WSBaseReqProto.create(payload);
             // Encode a message to an Uint8Array (browser) or Buffer (node)
@@ -306,6 +310,7 @@ export default {
             // 如果有加朋友的验证码
             if (userCheckCode) {
                 // 发送加好友的请求
+                console.log("userCheckCode:"+userCheckCode);
                 this.$refs["him"].createUserFriendAsk(userCheckCode);
                 // 发送后删除
                 this.delUserCheckCode();

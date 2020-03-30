@@ -43,10 +43,10 @@
                         <img src="./image/user-2-default.png" alt="女游客登录">
                         <span>注册</span>
                     </a> -->
-                    <a class="user-login-button" href="javascript:" @click="register">
+                    <!-- <a class="user-login-button" href="javascript:" @click="register">
                         <img src="./image/user-1-default.png" alt="注册">
                         <span>注册</span>
-                    </a>
+                    </a> -->
                     <a class="user-login-button" href="javascript:" @click="loginingByPassword">
                         <img src="./image/user-2-default.png" alt="账号登入">
                         <span>账号登入</span>
@@ -60,12 +60,18 @@
             <!-- 新增账号密码登入-->
             <div class = "user-login-password-box" v-if="!user.uid && user.isLoginingByPassword">
                 <div class = "user-login-name">
-                    <input type="text" v-model="userName" placeholder="请输入用户名" style="color:green;border-radius:9px;height:30px;width:100Px;text-align:center;" >
+                    <input type="text" v-model="userName" placeholder="输入用户名" style="color:green;border-radius:9px;height:30px;width:100Px;text-align:center;" >
                 </div> 
                 <div class ="user-login-password">
-                    <input type="password" v-model="password" placeholder="请输入密码" style="color:green;border-radius:9px;height:30px;width:100Px;text-align:center;" > 
+                    <input type="password" v-model="password" placeholder="输入密码" style="color:green;border-radius:9px;height:30px;width:100Px;text-align:center;" > 
                 </div >
-                 <div class ="user-login-sure">
+                 <div class="err-area"v-if="user.isLoginError">
+                     <div class="err-msg">
+                         <span class="err-message">账号或者密码错误</span>
+                     </div>
+                 </div>
+                 <div class ="user-login-sure"> 
+                     <button class="user-login-sure-button cancel" @click="userNamePasswordLoginBack()">返回</button>
                     <button class="user-login-sure-button" @click="userNamePasswordLogin(userName,password)">确认</button>
                 </div >
             </div>
@@ -92,8 +98,8 @@
                     <div class="im-header-qrcode-box" @click="userQRCodeClick">
                         <img src="./image/qrcode.png" alt="二维码" title="二维码" style="width: 100%; height: 100%;">
                     </div>
-                    <i class="im-icon im-icon-ring-open"></i>
-                    <i class="im-icon im-icon-panel-down" @click="isShowClick"></i>
+                    <!-- <i class="im-icon im-icon-ring-open"></i>
+                    <i class="im-icon im-icon-panel-down" @click="isShowClick"></i> -->
                 </div>
             </header>
             <!-- tab 导航栏 <nav> 标签是 HTML 5 中的新标签 用于导航 -->
@@ -123,12 +129,12 @@
                 <div class="im-chat-reconnect" v-if="!webSocketIsReconnect">
                     <a href="javascript:" @click="init">重新连接</a>
                 </div>
-                <div class="im-panel-searchbar">
+                <!-- <div class="im-panel-searchbar">
                     <div class="im-panel-searchbar-inner">
                         <img src="./image/search.png" class="im-panel-search">
                         <input type="search" placeholder="搜索" class="im-panel-searchbar-core">
                     </div>
-                </div>
+                </div> -->
 
                 <div class="im-list-empty" v-if="Object.keys(historyMsgList).length === 0">
                     暂无数据
@@ -395,7 +401,7 @@
             </main>
             <!--聊天框底部   -->
             <footer class="im-chat-footer">
-                <!--  笑脸 图片 上场文件 图片和上传图片暂不支持  -->
+                <!--  笑脸 图片 上传文件 图片和上传图片暂不支持  -->
                 <div class="im-chat-feature-holder">
                     <div class="im-chat-feature-btn-box">
                         <div class="im-chat-feature-btn im-icon im-icon-emoji im-emoji-box" @click="handleEmoji">
@@ -405,8 +411,8 @@
                                 </template>
                             </div>
                         </div>
-                        <div class="im-chat-feature-btn im-icon im-icon-photo"></div>
-                        <div class="im-chat-feature-btn im-icon im-icon-upload"></div>
+                        <!-- <div class="im-chat-feature-btn im-icon im-icon-photo"></div>
+                        <div class="im-chat-feature-btn im-icon im-icon-upload"></div> -->
                     </div>
                 </div>
                 <!-- 消息输入的框框  -->
@@ -587,7 +593,8 @@ export default {
                 sid: null,
                 isChoose: true,//控制是否展示选择登入方式 
                 isLoginingByPassword: null, //控制是否展示账号密码登入界面
-                isRegistering: null //控制是否展示注册界面
+                isRegistering: null, //控制是否展示注册界面
+                isLoginError: null//控制是否显示登入错误
 
             },
             imBoxPositionX: null,
@@ -879,7 +886,10 @@ export default {
             this.delSid();
             this.user = {
                 profile: {},
-                sid: null
+                sid: null,
+                isLoginingByPassword:false,
+                isChoose:true,
+                isLoginError: false
             };
             this.userFriendList = {};
             this.newFriendList = [];
@@ -907,14 +917,17 @@ export default {
         //账号密码登入
         userNamePasswordLogin(userName,password) {
             // 先退出
-            this.userOut();
+           // this.userOut();
             userLoginByPassword(this.apiBaseUrl, userName,password)
                 .then(response => {
                     if (response.code !== 0) {
+                        this.user.isLoginError = true;
                         this.requestErr(response.code, response.message);
                         return false;
                     }
+                    console.log("登入成功");
                     let data = response.data;
+                    this.user.isLoginError = false;
                     // 设置登录信息
                     this.setUid(data.uid);
                     this.setSid(data.sid);
@@ -922,6 +935,11 @@ export default {
                     this.init();
                 })
                 .catch(() => {});
+        },
+        //账号密码登入返回
+        userNamePasswordLoginBack(){
+                this.user.isLoginingByPassword = false;
+                this.user.isChoose = true;
         },
         // 游客登录
         touristLogin(sex) {
@@ -1316,7 +1334,9 @@ export default {
                     }
                     this.getUserFriendList(page + 1, limit);
                 })
-                .catch(() => {});
+                .catch(() => {
+                    console.log("获取朋友失败")
+                });
         },
         // 朋友列表的点击
         friendClick(item) {
@@ -1746,6 +1766,9 @@ export default {
             const data = event.data;
             this.WSResDecode(data, response => {
                 console.log("服务端消息:", response);
+                if (response.createTime.substr(0,1) ==2){
+                    response.createTime = response.createTime.substr(0,19)
+                }
                 let type = response.type || 0;
                 switch (type) {
                     case -2: // 登录异常
@@ -1964,6 +1987,7 @@ export default {
             // 加入登录验证
             payload.uid = parseInt(this.getUid());
             payload.sid = this.getSid();
+
             let buffer = this.WSResEncode(payload);
             this.webSocket.send(buffer);
         },
@@ -2413,6 +2437,7 @@ input {
     outline: none;
     /*清除移动端默认的表单样式*/
     -webkit-appearance: none;
+    font-size: 16px;
 }
 //清除浮动
 @mixin clearfix() {
@@ -2738,17 +2763,20 @@ only screen and (min-device-pixel-ratio: 2) {
         left: 50%;
         transform: translate(-50%, -50%);
         height :25px;
-        width: 50px;
         z-index: 1000;
-        display: flex;
+        display: flex;    justify-content: space-between;
+        width: 47%;
         .user-login-sure-button {
             color: #26a2ff;
-            width: 100%;
+            width: 44%;
             margin: 0;
             border: 0;
             border-radius:9px;
             background-color: rgb(15, 222, 236);
 
+        }
+        .cancel{
+             background-color: #ffffff;
         }
     }
 }
@@ -3263,6 +3291,18 @@ only screen and (min-device-pixel-ratio: 2) {
     img {
         max-width: 100%;
         vertical-align: middle;
+    }
+}
+.err-area{
+    position: absolute;
+    top: 60%;
+    width: 100%;
+    .err-msg{
+        text-align: center;
+    }
+    .err-message{
+        color: red;
+        font-size: 14px;
     }
 }
 .im-chat-msg-text::after {
